@@ -1,0 +1,55 @@
+package routine
+
+import (
+	"errors"
+	"net"
+	"syscall"
+
+	"github.com/L1nK1ng/turbo-attack/packet"
+)
+
+// sendPacket prende un indirizzo IP, una porta e un protocollo e invia un pacchetto casuale con flag casuali.
+// Restituisce un errore se si verifica.
+func sendPacket(ethInterface *string, ipByte *[]byte, portByte *[]byte, protocol uint16) error {
+	fd, _ := syscall.Socket(syscall.AF_PACKET, syscall.SOCK_RAW, syscall.ETH_P_ALL)
+	nic, err := net.InterfaceByName(*ethInterface)
+	if err != nil {
+		return errors.New("l'interfaccia non esiste")
+	}
+
+	addr := syscall.SockaddrLinklayer{
+		Protocol: syscall.ETH_P_IP,
+		Ifindex:  nic.Index,
+		Halen:    uint8(len(nic.HardwareAddr)),
+		Addr:     nic.HardwareAddr,
+	}
+
+	_ = syscall.Bind(fd, &addr)
+
+	var packetBytes []byte
+	if protocol == syscall.ETH_P_IP {
+		packetBytes, err = packet.TCP4(74, *ipByte, *portByte)
+	} else if protocol == syscall.ETH_P_IPV6 {
+		packetBytes, err = packet.TCP6(74, *ipByte, *portByte)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	_, _ = syscall.Write(fd, packetBytes)
+	syscall.Close(fd)
+	return nil
+}
+
+// IP4 prende un indirizzo IP e una porta e invia un pacchetto TCP4 casuale con flag casuali.
+// Restituisce un errore se si verifica.
+func IP4(ethInterface *string, ipByte *[]byte, portByte *[]byte) error {
+	return sendPacket(ethInterface, ipByte, portByte, syscall.ETH_P_IP)
+}
+
+// IP6 prende un indirizzo IP e una porta e invia un pacchetto TCP6 casuale con flag casuali.
+// Restituisce un errore se si verifica.
+func IP6(ethInterface *string, ipByte *[]byte, portByte *[]byte) error {
+	return sendPacket(ethInterface, ipByte, portByte, syscall.ETH_P_IPV6)
+}

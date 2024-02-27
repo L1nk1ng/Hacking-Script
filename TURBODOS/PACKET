@@ -1,0 +1,236 @@
+package packet
+
+import (
+	"github.com/mytechnotalent/turbo-attack/bit"
+	"github.com/mytechnotalent/turbo-attack/convert"
+	"github.com/mytechnotalent/turbo-attack/rand"
+)
+
+// TCP4 fornisce la creazione personalizzata di un pacchetto TCP4.
+// Restituirà un []byte valido o un errore.
+func TCP4(size int, ipv4Byte, portByte []byte) (packet []byte, err error) {
+	packet = make([]byte, size, size)
+	// header ethernet - indirizzo MAC di destinazione [6 byte]
+	nUInt8 := rand.UInt8(255)
+	nIntCB := bit.Clear(nUInt8, 0) // per assicurare unicast, il bit 0 non è impostato
+	nIntCB = bit.Clear(nIntCB, 1)  // per assicurare il valore predefinito di fabbrica, il bit 1 non è impostato
+	randDstMACAddr, _ := rand.Byte(5)
+	nByte := convert.Int8ToByte(nIntCB)
+	// header ethernet - indirizzo MAC di destinazione [6 byte]
+	packet[0] = *nByte
+	packet[1] = randDstMACAddr[0]
+	packet[2] = randDstMACAddr[1]
+	packet[3] = randDstMACAddr[2]
+	packet[4] = randDstMACAddr[3]
+	packet[5] = randDstMACAddr[4]
+	randSrcMACAddr, _ := rand.Byte(5)
+	nByte = convert.Int8ToByte(nIntCB)
+	// header ethernet - indirizzo MAC di origine [6 byte]
+	packet[6] = *nByte
+	packet[7] = randSrcMACAddr[0]
+	packet[8] = randSrcMACAddr[1]
+	packet[9] = randSrcMACAddr[2]
+	packet[10] = randSrcMACAddr[3]
+	packet[11] = randSrcMACAddr[4]
+	// header ethernet - tipo protocollo [2 byte]
+	packet[12] = 0x08
+	packet[13] = 0x00
+	// header IP - versione & IHL [1 byte]
+	packet[14] = 0x45
+	// header IP - tipo di servizio [1 byte]
+	packet[15] = 0x00
+	// header IP - lunghezza totale [2 byte]
+	packet[16] = 0x00
+	packet[17] = 0x3c
+	// header IP - identificazione [2 byte]
+	randIdentification, _ := rand.Byte(6)
+	packet[18] = randIdentification[0]
+	packet[19] = randIdentification[1]
+	// header IP - flags, frammento, offset [2 byte]
+	packet[20] = 0x00
+	packet[21] = 0x00
+	// header IP - TTl [1 byte]
+	packet[22] = 0x40
+	// header IP - protocollo [1 byte]
+	packet[23] = 0x06
+	// header IP - checksum [2 byte]
+	packet[24] = 0x00
+	packet[25] = 0x00
+	// header IP - indirizzo IP sorgente [4 byte]
+	randSrcIPAddr, _ := rand.Byte(4)
+	packet[26] = randSrcIPAddr[0]
+	packet[27] = randSrcIPAddr[1]
+	packet[28] = randSrcIPAddr[2]
+	packet[29] = randSrcIPAddr[3]
+	// header IP - indirizzo IP destinazione [4 byte]
+	packet[30] = ipv4Byte[12]
+	packet[31] = ipv4Byte[13]
+	packet[32] = ipv4Byte[14]
+	packet[33] = ipv4Byte[15]
+	// header TCP - porta TCP sorgente [2 byte]
+	randSrcTCPPort, _ := rand.Byte(2)
+	packet[34] = randSrcTCPPort[0]
+	packet[35] = randSrcTCPPort[1]
+	// header TCP - porta TCP destinazione [2 byte]
+	packet[36] = portByte[0]
+	packet[37] = portByte[1]
+	// header TCP - numero di sequenza [4 byte]
+	randSeqNum, _ := rand.Byte(4)
+	packet[38] = randSeqNum[0]
+	packet[39] = randSeqNum[1]
+	packet[40] = randSeqNum[2]
+	packet[41] = randSeqNum[3]
+	// header TCP - numero di riconoscimento [4 byte]
+	packet[42] = 0x00
+	packet[43] = 0x00
+	packet[44] = 0x00
+	packet[45] = 0x00
+	// header TCP - offset dati riservati flags [2 byte]
+	packet[46] = 0xa0
+	packet[47] = 0x02
+	// header TCP - dimensione finestra [2 byte]
+	packet[48] = 0x72
+	packet[49] = 0x10
+	// header TCP - checksum [2 byte]
+	packet[50] = 0x00
+	packet[51] = 0x00
+	// header TCP - puntatore urgente [2 byte]
+	packet[52] = 0x00
+	packet[53] = 0x00
+	// opzione header TCP - mss [4 byte]
+	packet[54] = 0x02
+	packet[55] = 0x04
+	packet[56] = 0x05
+	packet[57] = 0xb4
+	// opzione header TCP - sack permitted [2 byte]
+	packet[58] = 0x04
+	packet[59] = 0x02
+	randTimeStamp, _ := rand.Byte(4)
+	// opzione header TCP - time stamps [10 byte]
+	packet[60] = 0x08
+	packet[61] = 0x0a
+	packet[62] = randTimeStamp[0]
+	packet[63] = randTimeStamp[1]
+	packet[64] = randTimeStamp[2]
+	packet[65] = randTimeStamp[3]
+	packet[66] = 0x00
+	packet[67] = 0x00
+	packet[68] = 0x00
+	packet[69] = 0x00
+	// opzione header TCP - NOP
+	packet[70] = 0x01
+	// opzione header TCP - window scale
+	packet[71] = 0x03
+	packet[72] = 0x03
+	packet[73] = 0x07
+	return packet, err
+}
+
+// TCP6 fornisce la creazione personalizzata di un pacchetto TCP6.
+// Restituirà un []byte slice o un errore.
+func TCP6(size int, ipv6Byte []byte, portByte []byte) (packet []byte, err error) {
+	packet = make([]byte, size, size)
+	// header ethernet - indirizzo MAC di destinazione [6 byte]
+	nUInt8 := rand.UInt8(255)
+	nIntCB := bit.Clear(nUInt8, 0) // per assicurare unicast, il bit 0 non è impostato
+	nIntCB = bit.Clear(nIntCB, 1)  // per assicurare il valore predefinito di fabbrica, il bit 1 non è impostato
+	randDstMACAddr, _ := rand.Byte(5)
+	nByte := convert.Int8ToByte(nIntCB)
+	// header ethernet - indirizzo MAC di destinazione [6 byte]
+	packet[0] = *nByte
+	packet[1] = randDstMACAddr[0]
+	packet[2] = randDstMACAddr[1]
+	packet[3] = randDstMACAddr[2]
+	packet[4] = randDstMACAddr[3]
+	packet[5] = randDstMACAddr[4]
+	randSrcMACAddr, _ := rand.Byte(5)
+	nByte = convert.Int8ToByte(nIntCB)
+	// header ethernet - indirizzo MAC di origine [6 byte]
+	packet[6] = *nByte
+	packet[7] = randSrcMACAddr[0]
+	packet[8] = randSrcMACAddr[1]
+	packet[9] = randSrcMACAddr[2]
+	packet[10] = randSrcMACAddr[3]
+	packet[11] = randSrcMACAddr[4]
+	// header ethernet - tipo protocollo [2 byte]
+	packet[12] = 0x86
+	packet[13] = 0xdd
+	// header IP - versione [4-bit] + classe di traffico [8-bit] + etichetta di flusso [20-bit]
+	packet[14] = 0x60
+	packet[15] = 0x00
+	packet[16] = 0x00
+	packet[17] = 0x00
+	// header IP - lunghezza del payload [2 byte]
+	packet[18] = 0x00
+	packet[19] = 0x14
+	// header IP - prossimo header [1 byte]
+	packet[20] = 0x06
+	// header IP - hop limit [1 byte]
+	packet[21] = 0xff
+	// header IP - indirizzo IP sorgente [16 byte]
+	randSrcIPAddr, _ := rand.Byte(16)
+	packet[22] = randSrcIPAddr[0]
+	packet[23] = randSrcIPAddr[1]
+	packet[24] = randSrcIPAddr[2]
+	packet[25] = randSrcIPAddr[3]
+	packet[26] = randSrcIPAddr[4]
+	packet[27] = randSrcIPAddr[5]
+	packet[28] = randSrcIPAddr[6]
+	packet[29] = randSrcIPAddr[7]
+	packet[30] = randSrcIPAddr[8]
+	packet[31] = randSrcIPAddr[9]
+	packet[32] = randSrcIPAddr[10]
+	packet[33] = randSrcIPAddr[11]
+	packet[34] = randSrcIPAddr[12]
+	packet[35] = randSrcIPAddr[13]
+	packet[36] = randSrcIPAddr[14]
+	packet[37] = randSrcIPAddr[15]
+	// header IP - indirizzo IP destinazione [16 byte]
+	packet[38] = ipv6Byte[0]
+	packet[39] = ipv6Byte[1]
+	packet[40] = ipv6Byte[2]
+	packet[41] = ipv6Byte[3]
+	packet[42] = ipv6Byte[4]
+	packet[43] = ipv6Byte[5]
+	packet[44] = ipv6Byte[6]
+	packet[45] = ipv6Byte[7]
+	packet[46] = ipv6Byte[8]
+	packet[47] = ipv6Byte[9]
+	packet[48] = ipv6Byte[10]
+	packet[49] = ipv6Byte[11]
+	packet[50] = ipv6Byte[12]
+	packet[51] = ipv6Byte[13]
+	packet[52] = ipv6Byte[14]
+	packet[53] = ipv6Byte[15]
+	// header TCP - porta TCP sorgente [2 byte]
+	randSrcTCPPort, _ := rand.Byte(2)
+	packet[54] = randSrcTCPPort[0]
+	packet[55] = randSrcTCPPort[1]
+	// header TCP - porta TCP destinazione [2 byte]
+	packet[56] = portByte[0]
+	packet[57] = portByte[1]
+	// header TCP - numero di sequenza [4 byte]
+	randSeqNum, _ := rand.Byte(4)
+	packet[58] = randSeqNum[0]
+	packet[59] = randSeqNum[1]
+	packet[60] = randSeqNum[2]
+	packet[61] = randSeqNum[3]
+	// header TCP - numero di riconoscimento [4 byte]
+	packet[62] = 0x00
+	packet[63] = 0x00
+	packet[64] = 0x00
+	packet[65] = 0x00
+	// header TCP - offset dati riservati flags [2 byte]
+	packet[66] = 0xa0
+	packet[67] = 0x02
+	// header TCP - dimensione finestra [2 byte]
+	packet[68] = 0xff
+	packet[69] = 0xff
+	// header TCP - checksum [2 byte]
+	packet[70] = 0x1b
+	packet[71] = 0x82
+	// header TCP - puntatore urgente [2 byte]
+	packet[72] = 0x00
+	packet[73] = 0x00
+	return packet, err
+}
