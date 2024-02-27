@@ -5,7 +5,7 @@ import (
 	"net"
 	"syscall"
 
-	"github.com/L1nK1ng/turbo-attack/packet"
+	"github.com/L1nK1ng/TURBODOS/packet"
 )
 
 // sendPacket prende un indirizzo IP, una porta e un protocollo e invia un pacchetto casuale con flag casuali.

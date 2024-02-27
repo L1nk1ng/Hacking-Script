@@ -1,9 +1,9 @@
 package packet
 
 import (
-	"github.com/mytechnotalent/turbo-attack/bit"
-	"github.com/mytechnotalent/turbo-attack/convert"
-	"github.com/mytechnotalent/turbo-attack/rand"
+	"github.com/L1nK1ng/TURBODOS/bit"
+	"github.com/L1nK1ng/TURBODOS/convert"
+	"github.com/L1nK1ng/TURBODOS/rand"
 )
 
 // TCP4 fornisce la creazione personalizzata di un pacchetto TCP4.
