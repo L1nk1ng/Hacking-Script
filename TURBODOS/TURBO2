@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mytechnotalent/turbo-attack/convert"
-	"github.com/mytechnotalent/turbo-attack/routine"
-	"github.com/mytechnotalent/turbo-attack/sudo"
+	"github.com/L1nK1ng/TURBODOS/convert"
+	"github.com/L1nK1ng/TURBODOS/routine"
+	"github.com/L1nK1ng/TURBODOS/sudo"
 )
 
 // Opzioni configurabili
